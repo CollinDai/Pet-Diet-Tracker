@@ -1,0 +1,8 @@
+opencv-python
+Flask
+pytest
+numpy
+google-genai
+Pillow
+pillow-heif
+picamera2
