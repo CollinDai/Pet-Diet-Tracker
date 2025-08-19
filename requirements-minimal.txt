@@ -1,0 +1,7 @@
+# Minimal requirements for pet food monitoring
+Flask
+pytest
+google-genai
+Pillow
+python-dotenv
+numpy

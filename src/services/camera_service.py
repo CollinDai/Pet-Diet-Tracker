@@ -2,13 +2,15 @@ import logging
 from typing import Tuple, Optional
 import numpy as np
 
+logger = logging.getLogger(__name__)
+
 try:
     from picamera2 import Picamera2
     IS_RASPBERRY_PI = True
-except ImportError:
+    logger.info("Picamera2 imported successfully")
+except ImportError as e:
     IS_RASPBERRY_PI = False
-
-logger = logging.getLogger(__name__)
+    logger.error(f"Failed to import picamera2: {e}")
 
 class CameraService:
     def __init__(self, camera_index: int = 0, width: int = 640, height: int = 480):
@@ -65,4 +67,8 @@ class CameraService:
                 logger.error(f"Error releasing camera: {e}")
 
     def __del__(self) -> None:
-        self.release()
+        try:
+            if hasattr(self, 'is_started'):
+                self.release()
+        except:
+            pass  # Ignore errors during cleanup
