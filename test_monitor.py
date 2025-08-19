@@ -1,13 +1,18 @@
 import argparse
 import os
 import time
-from dotenv import load_dotenv
 from src.services.monitoring_service import MonitoringService
 from src.services.camera_service import CameraService
 from src.services.notification_service import NotificationService
 from src.services.event_history_service import EventHistoryService
 
-load_dotenv()
+# Try to load dotenv, but continue if not available
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    print("Warning: python-dotenv not installed. Make sure GEMINI_API_KEY is set in environment.")
+    print("Install with: pip install python-dotenv")
 
 def test_monitoring_service(num_cycles: int = 3, debounce_time: float = 10):
     """

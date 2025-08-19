@@ -3,3 +3,4 @@ pytest
 google-genai
 Pillow
 picamera2
+python-dotenv
