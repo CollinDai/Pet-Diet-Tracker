@@ -2,6 +2,9 @@
 
 This project uses a camera to monitor a pet's food bowl and sends notifications when the bowl is empty or refilled.
 
+The project is designed to run on raspberry pi. It will use raspberry pi's camera module to capture picture of the bowl. Then it will use google gemini api to analyze the image to tell if it is empty or full, or partially empty.
+
+
 ## Setup
 
 1.  **Clone the repository:**
@@ -29,9 +32,10 @@ This project uses a camera to monitor a pet's food bowl and sends notifications 
     ```
 
 4.  **Set the Gemini API Key:**
-    You need to set the `GEMINI_API_KEY` environment variable to use the image analysis service.
-    ```bash
-    export GEMINI_API_KEY="your_gemini_api_key_here"
+    You need to set the `GEMINI_API_KEY` environment variable to use the image analysis service using the `.env` file.
+
+    ```properties
+    GEMINI_API_KEY="your_api_key"
     ```
 
 ## Running the application

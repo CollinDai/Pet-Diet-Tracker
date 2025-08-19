@@ -233,3 +233,8 @@ Icon[]
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Project specific
+temp_images/
+event_log.json
+test_image.jpg

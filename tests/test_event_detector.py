@@ -1,59 +1,58 @@
 import pytest
-import numpy as np
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from src.event_detector import EventDetector
 
 @pytest.fixture
-def detector():
+def mock_image_analysis_service():
+    """Provides a mock ImageAnalysisService."""
+    return MagicMock()
+
+@pytest.fixture
+def detector(mock_image_analysis_service):
     """Provides an EventDetector instance for tests."""
-    return EventDetector()
+    return EventDetector(mock_image_analysis_service)
 
-def generate_dummy_frame():
-    """Generates a simple black frame for testing."""
-    return np.zeros((480, 640, 3), np.uint8)
-
-@patch('cv2.findContours')
-def test_detect_events_bowl_empty(mock_find_contours, detector):
+def test_detect_events_bowl_empty(detector, mock_image_analysis_service):
     """
     Unit test for the 'dog food from the bowl is all gone' event.
     """
-    # Arrange: Mock findContours to return 0 contours
-    mock_find_contours.return_value = ([], None)
-    frame = generate_dummy_frame()
+    # Arrange
+    mock_image_analysis_service.analyze_image.return_value = "empty"
+    frame = "dummy_frame"
 
     # Act
-    event = detector.detect_events(frame)
+    with patch.object(detector, '_save_frame_to_disk', return_value='dummy_path') as mock_save:
+        event = detector.detect_events(frame)
 
     # Assert
     assert event == "dog food from the bowl is all gone"
 
-@patch('cv2.findContours')
-def test_detect_events_bowl_refilled(mock_find_contours, detector):
+def test_detect_events_bowl_refilled(detector, mock_image_analysis_service):
     """
     Unit test for the 'dog food is refilled' event.
     """
-    # Arrange: Mock findContours to return a high number of contours (e.g., 30)
-    # The actual contour data doesn't matter, just the length.
-    mock_find_contours.return_value = ([1] * 30, None)
-    frame = generate_dummy_frame()
+    # Arrange
+    mock_image_analysis_service.analyze_image.return_value = "full"
+    frame = "dummy_frame"
 
     # Act
-    event = detector.detect_events(frame)
+    with patch.object(detector, '_save_frame_to_disk', return_value='dummy_path') as mock_save:
+        event = detector.detect_events(frame)
 
     # Assert
     assert event == "dog food is refilled"
 
-@patch('cv2.findContours')
-def test_detect_events_partially_eaten(mock_find_contours, detector):
+def test_detect_events_partially_eaten(detector, mock_image_analysis_service):
     """
     Unit test for the 'dog has eaten the food but did not finish all' event.
     """
-    # Arrange: Mock findContours to return a medium number of contours (e.g., 15)
-    mock_find_contours.return_value = ([1] * 15, None)
-    frame = generate_dummy_frame()
+    # Arrange
+    mock_image_analysis_service.analyze_image.return_value = "partially eaten"
+    frame = "dummy_frame"
 
     # Act
-    event = detector.detect_events(frame)
+    with patch.object(detector, '_save_frame_to_disk', return_value='dummy_path') as mock_save:
+        event = detector.detect_events(frame)
 
     # Assert
     assert event == "dog has eaten the food but did not finish all"

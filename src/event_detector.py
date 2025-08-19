@@ -1,6 +1,8 @@
 import os
-import cv2
 import uuid
+from typing import Optional
+from PIL import Image
+
 from src.services.image_analysis_service import ImageAnalysisService
 
 class EventDetector:
@@ -10,7 +12,7 @@ class EventDetector:
         if not os.path.exists(self.temp_image_dir):
             os.makedirs(self.temp_image_dir)
 
-    def detect_events(self, frame) -> str | None:
+    def detect_events(self, frame) -> Optional[str]:
         """
         Analyzes a single frame to detect events using an image analysis service.
         """
@@ -26,12 +28,13 @@ class EventDetector:
         """
         Saves a video frame to a temporary image file.
         """
-        filename = f"{uuid.uuid4()}.jpg"
+        filename = f"{uuid.uuid4()}.png"
         image_path = os.path.join(self.temp_image_dir, filename)
-        cv2.imwrite(image_path, frame)
+        img = Image.fromarray(frame)
+        img.save(image_path)
         return image_path
 
-    def _description_to_event(self, description: str) -> str | None:
+    def _description_to_event(self, description: str) -> Optional[str]:
         """
         Converts a text description of the food bowl scene into a specific event.
         """

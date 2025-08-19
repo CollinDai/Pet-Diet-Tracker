@@ -1,0 +1,1 @@
+"""Services package for pet food consumption monitor."""
