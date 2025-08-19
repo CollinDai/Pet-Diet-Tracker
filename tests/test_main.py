@@ -1,101 +1,97 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from src.main import main_loop
+from src.services.monitoring_service import MonitoringService, MonitoringResult
 from tests.mocks.mock_camera import MockCamera
 from tests.mocks.mock_notification_service import MockNotificationService
 
-@patch('src.main.EventDetector')
-@patch('src.main.EventHistoryService')
-def test_main_loop_event_detection(MockEventHistoryService, MockEventDetector):
+def test_main_loop_event_detection():
     """
-    Tests the main loop with a mock camera and mock notification service.
+    Tests the main loop with a mock camera and monitoring service.
     """
     # Arrange
-    mock_event_detector_instance = MockEventDetector.return_value
-    mock_event_detector_instance.detect_events.side_effect = [
-        "dog food is refilled",
-        "dog has eaten the food but did not finish all",
-        "dog food from the bowl is all gone"
-    ]
     frames = ["frame1", "frame2", "frame3"]
     mock_camera = MockCamera(frames)
-    mock_notification_service = MockNotificationService()
-    mock_event_history_service = MockEventHistoryService()
+    mock_monitoring_service = MagicMock()
+    
+    # Mock monitoring service to call the camera.read() method and track frame index
+    def mock_run_cycle(camera):
+        camera.read()  # This advances frame_index
+        return MonitoringResult("dog food is refilled", True, 1000)
+    
+    mock_monitoring_service.run_monitoring_cycle.side_effect = mock_run_cycle
 
     # Act
-    main_loop(mock_camera, mock_notification_service, mock_event_history_service)
+    main_loop(mock_camera, mock_monitoring_service)
 
     # Assert
-    assert len(mock_notification_service.notifications) == 3
-    assert mock_event_history_service.log_event.call_count == 3
-    mock_event_history_service.log_event.assert_any_call("dog food is refilled")
-    mock_event_history_service.log_event.assert_any_call("dog has eaten the food but did not finish all")
-    mock_event_history_service.log_event.assert_any_call("dog food from the bowl is all gone")
+    assert mock_monitoring_service.run_monitoring_cycle.call_count == 3
 
 
-@patch('src.main.EventDetector')
-@patch('src.main.EventHistoryService')
-def test_main_loop_no_events(MockEventHistoryService, MockEventDetector):
+def test_main_loop_no_events():
     """
-    Tests that no notifications are sent when no events are detected.
+    Tests that main loop handles cases when no events are detected.
     """
     # Arrange
-    mock_event_detector_instance = MockEventDetector.return_value
-    mock_event_detector_instance.detect_events.return_value = None
     frames = ["frame1", "frame2", "frame3"]
     mock_camera = MockCamera(frames)
-    mock_notification_service = MockNotificationService()
-    mock_event_history_service = MockEventHistoryService()
+    mock_monitoring_service = MagicMock()
+    
+    # Mock monitoring service to call the camera.read() method and track frame index
+    def mock_run_cycle(camera):
+        camera.read()  # This advances frame_index
+        return MonitoringResult(None, True, 1000)
+    
+    mock_monitoring_service.run_monitoring_cycle.side_effect = mock_run_cycle
 
     # Act
-    main_loop(mock_camera, mock_notification_service, mock_event_history_service)
+    main_loop(mock_camera, mock_monitoring_service)
 
     # Assert
-    assert len(mock_notification_service.notifications) == 0
-    assert mock_event_history_service.log_event.call_count == 0
+    assert mock_monitoring_service.run_monitoring_cycle.call_count == 3
 
-@patch('time.time')
-@patch('src.main.EventDetector')
-@patch('src.main.EventHistoryService')
-def test_main_loop_same_event_suppression(MockEventHistoryService, MockEventDetector, mock_time):
+def test_main_loop_camera_failure():
     """
-    Tests that repeated events are suppressed for a period of time.
+    Tests that main loop handles camera failures gracefully.
     """
     # Arrange
-    mock_time.return_value = 1000
-    mock_event_detector_instance = MockEventDetector.return_value
-    mock_event_detector_instance.detect_events.return_value = "dog food is refilled"
-    mock_notification_service = MockNotificationService()
-    mock_event_history_service = MockEventHistoryService()
+    mock_camera = MockCamera([])  # Empty frames will cause camera failure
+    mock_monitoring_service = MagicMock()
     
-    # 1. Initial event
-    frames = ["frame1"]
-    mock_camera = MockCamera(frames)
-    last_event, last_event_time = main_loop(mock_camera, mock_notification_service, mock_event_history_service)
-    assert len(mock_notification_service.notifications) == 1
-    assert mock_event_history_service.log_event.call_count == 1
-    assert last_event == "dog food is refilled"
+    # Mock monitoring service to return camera failure
+    mock_monitoring_service.run_monitoring_cycle.return_value = MonitoringResult(
+        None, False, 1000, "Failed to capture frame from camera"
+    )
 
-    # 2. Time advances, but not enough to trigger a new notification for the same event
-    mock_time.return_value = 1000 + 3500
-    frames = ["frame1"]
-    mock_camera = MockCamera(frames)
-    last_event, last_event_time = main_loop(mock_camera, mock_notification_service, mock_event_history_service, last_event, last_event_time)
-    assert len(mock_notification_service.notifications) == 1
-    assert mock_event_history_service.log_event.call_count == 1 # Should not be called again
+    # Act
+    main_loop(mock_camera, mock_monitoring_service)
 
-    # 3. Time advances enough to trigger a new notification for the same event
-    mock_time.return_value = 1000 + 3601
-    frames = ["frame1"]
+    # Assert
+    assert mock_monitoring_service.run_monitoring_cycle.call_count == 1
+
+def test_main_loop_monitoring_error():
+    """
+    Tests that main loop continues even when monitoring service has errors.
+    """
+    # Arrange
+    frames = ["frame1", "frame2"]
     mock_camera = MockCamera(frames)
-    last_event, last_event_time = main_loop(mock_camera, mock_notification_service, mock_event_history_service, last_event, last_event_time)
-    assert len(mock_notification_service.notifications) == 2
-    assert mock_event_history_service.log_event.call_count == 2 # Should be called again
+    mock_monitoring_service = MagicMock()
     
-    # 4. A different event occurs, so a notification should be sent immediately
-    mock_event_detector_instance.detect_events.return_value = "dog food from the bowl is all gone"
-    frames = ["frame1"]
-    mock_camera = MockCamera(frames)
-    last_event, last_event_time = main_loop(mock_camera, mock_notification_service, mock_event_history_service, last_event, last_event_time)
-    assert len(mock_notification_service.notifications) == 3
-    assert mock_event_history_service.log_event.call_count == 3
+    # Mock monitoring service to call the camera.read() method and track frame index
+    call_count = [0]
+    def mock_run_cycle(camera):
+        camera.read()  # This advances frame_index
+        call_count[0] += 1
+        if call_count[0] == 1:
+            return MonitoringResult(None, True, 1000, "Some monitoring error")
+        else:
+            return MonitoringResult("dog food is refilled", True, 1001)
+    
+    mock_monitoring_service.run_monitoring_cycle.side_effect = mock_run_cycle
+
+    # Act
+    main_loop(mock_camera, mock_monitoring_service)
+
+    # Assert
+    assert mock_monitoring_service.run_monitoring_cycle.call_count == 2

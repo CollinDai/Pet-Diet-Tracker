@@ -1,5 +1,3 @@
-import time
-import cv2
 import logging
 from typing import Tuple, Optional
 import numpy as np

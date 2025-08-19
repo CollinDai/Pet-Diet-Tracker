@@ -1,13 +1,10 @@
-import time
 import logging
-from typing import Optional, Tuple, Any
 from dotenv import load_dotenv
 
-from src.event_detector import EventDetector
 from src.services.camera_service import CameraService
 from src.services.event_history_service import EventHistoryService
-from src.services.image_analysis_service import GeminiImageAnalysisService
 from src.services.notification_service import NotificationService
+from src.services.monitoring_service import MonitoringService
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -15,63 +12,45 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-def main_loop(
-    cap: Any, 
-    notification_service: NotificationService, 
-    event_history_service: EventHistoryService, 
-    last_event: Optional[str] = None, 
-    last_event_time: float = 0
-) -> Tuple[Optional[str], float]:
+def main_loop(camera, monitoring_service: MonitoringService) -> None:
     """
     Main loop to run the pet food consumption monitor.
     """
-    if not cap.isOpened():
+    if not camera.isOpened():
         logger.error("Camera is not opened or failed to initialize")
-        return None, 0
+        return
 
-    image_analysis_service = GeminiImageAnalysisService()
-    detector = EventDetector(image_analysis_service)
-
+    logger.info("Starting monitoring loop...")
+    
     while True:
-        ret, frame = cap.read()
-        if not ret or frame is None:
-            logger.error("Failed to capture frame from camera")
-            break
-
-        event = detector.detect_events(frame)
-
-        if event and (event != last_event or time.time() - last_event_time > 3600):
-            logger.info(f"Event detected: {event}")
-            try:
-                notification_service.send_notification(f"Dog Food Alert: {event}", f"An event has been detected: {event}")
-                event_history_service.log_event(event)
-                last_event = event
-                last_event_time = time.time()
-            except Exception as e:
-                logger.error(f"Failed to send notification or log event: {e}")
-
+        result = monitoring_service.run_monitoring_cycle(camera)
+        
+        if result.error:
+            logger.error(f"Monitoring cycle error: {result.error}")
+            if not result.frame_captured:
+                break
+        
         # For testing, we'll just run for a few frames
-        if isinstance(cap, object) and cap.__class__.__name__ == "MockCamera":
-            if hasattr(cap, 'frame_index') and hasattr(cap, 'frames'):
-                if cap.frame_index >= len(cap.frames):
+        if isinstance(camera, object) and camera.__class__.__name__ == "MockCamera":
+            if hasattr(camera, 'frame_index') and hasattr(camera, 'frames'):
+                if camera.frame_index >= len(camera.frames):
                     break
 
-
     # When everything done, release the capture
-    cap.release()
-    return last_event, last_event_time
+    camera.release()
 
 def main() -> None:
     """
     Main function to run the pet food consumption monitor.
     """
     try:
-        cap = CameraService()
+        camera = CameraService()
         notification_service = NotificationService()
         event_history_service = EventHistoryService()
+        monitoring_service = MonitoringService(notification_service, event_history_service)
         
         logger.info("Starting pet food consumption monitor...")
-        main_loop(cap, notification_service, event_history_service)
+        main_loop(camera, monitoring_service)
         
     except RuntimeError as e:
         logger.error(f"Camera initialization failed: {e}")
