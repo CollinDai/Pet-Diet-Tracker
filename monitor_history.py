@@ -9,14 +9,15 @@ class MonitorHistory:
         self.log_file = log_file
         self.logger.info(f"Initializing monitor history with log file: {log_file}")
         
-    def record_check(self, status, error=None, notification_sent=False):
-        self.logger.debug(f"Recording check event: status={status}, error={error is not None}, notification_sent={notification_sent}")
+    def record_check(self, status, error=None, notification_sent=False, image_path=None):
+        self.logger.debug(f"Recording check event: status={status}, error={error is not None}, notification_sent={notification_sent}, image_path={image_path}")
         
         event = {
             "timestamp": datetime.now().isoformat(),
             "status": status,
             "notification_sent": notification_sent,
-            "error": str(error) if error else None
+            "error": str(error) if error else None,
+            "image_path": image_path
         }
         
         try:

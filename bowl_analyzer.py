@@ -23,6 +23,7 @@ class BowlAnalyzer:
         - EMPTY: if the bowl is completely empty or has only tiny crumbs
         - PARTIAL: if the bowl has some food but is not full
         - FULL: if the bowl is completely full or nearly full
+        - UNKNOWN: if there is no bowl found in this image
         
         Look carefully at the bowl contents and be precise in your assessment.
         """

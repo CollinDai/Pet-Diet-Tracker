@@ -20,10 +20,11 @@ class PetMonitor:
         
     def check_bowl_status(self):
         self.logger.debug("Starting bowl status check")
+        image_path = None
         try:
-            self.logger.debug("Capturing image from camera")
-            image_bytes = self.camera.capture_to_bytes()
-            self.logger.debug(f"Image captured, size: {len(image_bytes)} bytes")
+            self.logger.debug("Capturing and saving image from camera")
+            image_bytes, image_path = self.camera.capture_and_save()
+            self.logger.debug(f"Image captured and saved, size: {len(image_bytes)} bytes, path: {image_path}")
             
             self.logger.debug("Analyzing bowl status with AI")
             status = self.analyzer.analyze_bowl_status(image_bytes)
@@ -37,13 +38,13 @@ class PetMonitor:
             else:
                 self.logger.debug(f"No notification needed, status unchanged: {status}")
             
-            self.history.record_check(status, notification_sent=notification_sent)
+            self.history.record_check(status, notification_sent=notification_sent, image_path=image_path)
             self.logger.debug("Bowl status check completed successfully")
             return status
             
         except Exception as e:
             self.logger.error(f"Error checking bowl status: {e}", exc_info=True)
-            self.history.record_check(None, error=e)
+            self.history.record_check(None, error=e, image_path=image_path)
             return None
     
     def start_monitoring(self):

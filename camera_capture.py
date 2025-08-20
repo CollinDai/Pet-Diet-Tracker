@@ -1,6 +1,8 @@
 from picamera2 import Picamera2
 from PIL import Image
 import io
+import os
+from datetime import datetime
 from logger_config import get_logger
 
 class CameraCapture:
@@ -42,4 +44,26 @@ class CameraCapture:
             return image_bytes
         except Exception as e:
             self.logger.error(f"Failed to convert image to bytes: {e}", exc_info=True)
+            raise
+    
+    def capture_and_save(self):
+        self.logger.debug("Capturing and saving image")
+        try:
+            image = self.capture_image()
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"{timestamp}.jpg"
+            filepath = os.path.join("captured_images", filename)
+            
+            os.makedirs("captured_images", exist_ok=True)
+            image.save(filepath, format='JPEG')
+            self.logger.debug(f"Image saved to: {filepath}")
+            
+            buffer = io.BytesIO()
+            image.save(buffer, format='JPEG')
+            image_bytes = buffer.getvalue()
+            
+            return image_bytes, filepath
+        except Exception as e:
+            self.logger.error(f"Failed to capture and save image: {e}", exc_info=True)
             raise
