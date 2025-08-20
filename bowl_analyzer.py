@@ -20,7 +20,10 @@ class BowlAnalyzer:
             model='gemini-2.5-flash',
             contents=[
                 prompt,
-                {"mime_type": "image/jpeg", "data": image_bytes}
+                genai.types.Part.from_bytes(
+                    data=image_bytes, 
+                    mime_type="image/jpeg"
+                )
             ]
         )
         
