@@ -3,7 +3,7 @@ from PIL import Image
 import io
 import os
 from datetime import datetime
-from logger_config import get_logger
+from .logger_config import get_logger
 
 class CameraCapture:
     def __init__(self):

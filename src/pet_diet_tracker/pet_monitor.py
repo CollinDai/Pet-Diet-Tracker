@@ -1,9 +1,9 @@
 import time
-from camera_capture import CameraCapture
-from bowl_analyzer import BowlAnalyzer
-from notifier import Notifier
-from monitor_history import MonitorHistory
-from logger_config import get_logger
+from .camera_capture import CameraCapture
+from .bowl_analyzer import BowlAnalyzer
+from .notifier import Notifier
+from .monitor_history import MonitorHistory
+from .logger_config import get_logger
 
 class PetMonitor:
     def __init__(self, check_interval=300, log_file="monitoring_events.json"):

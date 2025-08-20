@@ -1,7 +1,7 @@
 import json
 import os
 from datetime import datetime
-from logger_config import get_logger
+from .logger_config import get_logger
 
 class MonitorHistory:
     def __init__(self, log_file="monitoring_events.json"):

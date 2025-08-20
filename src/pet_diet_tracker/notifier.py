@@ -1,5 +1,5 @@
 from datetime import datetime
-from logger_config import get_logger
+from .logger_config import get_logger
 
 class Notifier:
     def __init__(self):

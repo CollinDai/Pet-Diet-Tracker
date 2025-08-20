@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from src.pet_diet_tracker import PetMonitor
+from . import PetMonitor
 import argparse
-from src.pet_diet_tracker.logger_config import get_logger
+from .logger_config import get_logger
 
 def main():
     logger = get_logger(__name__)

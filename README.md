@@ -1,17 +1,22 @@
-# Pet Food Consumption Monitor
-
-This project uses a camera to monitor a pet's food bowl and sends notifications when the bowl is empty or refilled.
+# Pet Diet Tracker
+This project uses a camera to monitor a pet's food bowl and sends notifications when the bowl is emptied or refilled.
 
 The project is designed to run on raspberry pi. It will use raspberry pi's camera module to capture picture of the bowl. Then it will use google gemini api to analyze the image to tell if it is empty or full, or partially empty.
 
 ## Setup
 
-1. **Install Dependencies:**
+1. **Create Virtual Environment:**
    ```bash
-   pip install -r requirements.txt
+   python -m venv venv --system-site-packages
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-2. **Configure Environment:**
+2. **Install Dependencies:**
+   ```bash
+   pip install -e .
+   ```
+
+3. **Configure Environment:**
    Copy the example environment file and add your Gemini API key:
    ```bash
    cp .env.example .env
@@ -22,7 +27,7 @@ The project is designed to run on raspberry pi. It will use raspberry pi's camer
    GEMINI_API_KEY="your_api_key_here"
    ```
 
-3. **Hardware Setup:**
+4. **Hardware Setup:**
    - Ensure Raspberry Pi camera module is properly connected
    - Position camera to have clear view of pet food bowl
 
@@ -30,17 +35,22 @@ The project is designed to run on raspberry pi. It will use raspberry pi's camer
 
 **Start continuous monitoring:**
 ```bash
-python main.py
+pet-diet-tracker
 ```
 
 **Run with custom check interval (in seconds):**
 ```bash
-python main.py --interval 180
+pet-diet-tracker --interval 180
 ```
 
 **Run a single test check:**
 ```bash
-python main.py --test
+pet-diet-tracker --test
+```
+
+**Alternative - run directly with Python:**
+```bash
+python -m pet_diet_tracker.main
 ```
 
 The monitor will:

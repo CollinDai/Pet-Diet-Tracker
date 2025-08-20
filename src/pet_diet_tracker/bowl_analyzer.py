@@ -1,6 +1,6 @@
 from google import genai
-from config import Config
-from logger_config import get_logger
+from .config import Config
+from .logger_config import get_logger
 
 class BowlAnalyzer:
     def __init__(self):
