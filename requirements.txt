@@ -1,6 +1,3 @@
-Flask
-pytest
-google-genai
-Pillow
-picamera2
 python-dotenv
+google-genai
+pillow
