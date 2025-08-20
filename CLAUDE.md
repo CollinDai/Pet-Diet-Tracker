@@ -15,7 +15,13 @@ GEMINI_API_KEY="your_api_key"
 
 ## Project Status
 
-This appears to be a new/empty project with only a README.md file currently present. The codebase will likely be developed in Python given the project description mentions python-dotenv library and Raspberry Pi compatibility.
+The project is now implemented with the following Python modules:
+- `main.py` - Entry point with CLI interface
+- `pet_monitor.py` - Core monitoring logic
+- `camera_capture.py` - Raspberry Pi camera integration
+- `bowl_analyzer.py` - Google Gemini API integration for image analysis
+- `notifier.py` - Notification system
+- `config.py` - Environment configuration management
 
 ## Development Notes
 
@@ -26,6 +32,7 @@ This appears to be a new/empty project with only a README.md file currently pres
 
 ## Coding Notes
 
-- Keep the class and function small. Should follow Single Responsibility Principle. A function should do just one thing.
+- Keep the class and function small. Should follow Single Responsibility Principle. A function should do just one thing. And a class also should just do one thing.
 - Starting with the Gemini 2.0 release in late 2024, Google introduced a new set of libraries called the Google GenAI SDK. 
    - google-generativeai -> google-genai
+- When passing images to Google GenAI API, use `genai.types.Part.from_bytes()` with raw image bytes and proper mime_type
