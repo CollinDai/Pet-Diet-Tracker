@@ -234,7 +234,12 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# VS Code
+settings.json
+
 # Project specific
 temp_images/
 event_log.json
 test_image.jpg
+captured_images/
+monitoring_events.json
